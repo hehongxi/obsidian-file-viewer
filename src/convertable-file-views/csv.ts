@@ -48,14 +48,14 @@ export default class CsvFileView extends ConvertibleFileView {
         } else if (ch === ',') {
           current.push(field.trim())
           field = ""
-        } else if (ch === '\n' || (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n')) {
+        } else if (ch === '\n' || ch === '\r') {
           current.push(field.trim())
           field = ""
           if (current.length > 0 && !(current.length === 1 && current[0] === "")) {
             rows.push(current)
           }
           current = []
-          if (ch === '\r') i++ // skip \r in \r\n
+          if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') i++ // skip \n in \r\n
         } else {
           field += ch
         }
@@ -117,7 +117,15 @@ export default class CsvFileView extends ConvertibleFileView {
 
   static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
-    const text = await plugin.app.vault.read(file)
+    let text: string
+    try {
+      text = await plugin.app.vault.read(file)
+    } catch (e) {
+      console.error("Failed to read CSV file", file.path, e)
+      const wrapper = document.createElement("div")
+      wrapper.createEl("p", { text: `(Error reading file: ${file.basename})`, cls: "fv-error-message" })
+      return wrapper
+    }
     const rows = CsvFileView.parseCSV(text)
     return CsvFileView.buildHTMLTable(rows)
   }
@@ -128,7 +136,13 @@ export default class CsvFileView extends ConvertibleFileView {
 
   async getMarkdownContent(attachmentsDirectory: string): Promise<string | null> {
     if (!this.file) return null
-    const text = await this.app.vault.read(this.file)
+    let text: string
+    try {
+      text = await this.app.vault.read(this.file)
+    } catch (e) {
+      console.error("Failed to read CSV file", this.file.path, e)
+      return `(Error reading file: ${this.file.basename})`
+    }
     const rows = CsvFileView.parseCSV(text)
 
     if (rows.length === 0) return "(empty CSV)"
