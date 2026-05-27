@@ -20,20 +20,21 @@ The core design pattern — `ConvertibleFileView` abstract base class + `FILETYP
 
 File Viewer extends the obsidian-docxer architecture to support previewing and converting multiple document formats:
 
-| Format | Extension | Preview | Convert to MD | Phase |
-|--------|-----------|---------|---------------|-------|
-| Word | .docx | ✅ docx-preview | ✅ mammoth + turndown | ✅ Done (from docxer) |
+| Format | Extension | Preview | Convert to MD | Status |
+|--------|-----------|---------|---------------|--------|
+| Word | .docx | ✅ docx-preview | ✅ mammoth + turndown | ✅ Done |
+| CSV | .csv | ✅ HTML table | ✅ Markdown table | ✅ Done |
+| Text/Code | .txt, .json, .xml, .yaml, .py, .js, .ts, .go, .rs, etc. (40+) | ✅ styled code block | ✅ fenced code block | ✅ Done |
+| HTML | .html, .htm | ✅ sandboxed iframe | ✅ htmlToMarkdown | ✅ Done |
+| Audio | .mp3, .wav, .ogg, .flac, .m4a, .aac, .wma | ✅ HTML5 player | ✅ embed link | ✅ Done |
+| ZIP | .zip | ✅ file tree (pure JS) | ✅ table listing | ✅ Done |
+| Jupyter | .ipynb | ✅ cell renderer | ✅ code + outputs | ✅ Done |
 | Excel | .xlsx | 🔲 SheetJS | 🔲 SheetJS → table | Phase 2 |
-| PDF | .pdf | 🔲 iframe | 🔲 pdf.js | Phase 2 |
+| PDF | .pdf | 🔲 pdf.js | 🔲 pdf.js | Phase 2 |
 | EPUB | .epub | 🔲 epub.js | 🔲 ebooklib | Phase 2 |
-| CSV | .csv | 🔲 HTML table | 🔲 native JS | Phase 1 |
-| HTML | .html/.htm | 🔲 sandbox iframe | 🔲 DOM → MD | Phase 1 |
-| Text | .txt/.json | 🔲 code block | 🔲 native | Phase 1 |
-| Jupyter | .ipynb | 🔲 cell render | 🔲 JSON parse | Phase 1 |
-| Image | .jpg/.png | 🔲 img tag | 🔲 base64 embed | Phase 1 |
-| Audio | .wav/.mp3 | 🔲 audio player | 🔲 metadata | Phase 1 |
-| ZIP | .zip | 🔲 file list | 🔲 JSZip | Phase 1 |
 | PowerPoint | .pptx | 🔲 TBD | 🔲 markitdown | Phase 3 |
+
+**Note:** Image formats (.jpg, .png, .gif, .webp, .svg) are intentionally not handled — Obsidian's built-in image viewer is superior, and overriding it would degrade the user experience.
 
 ## Installation
 
@@ -51,7 +52,7 @@ Install using [BRAT](https://github.com/TfTHacker/obsidian42-brat) by adding `he
 ## Development
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 npm run dev    # watch mode
 npm run build  # production build
 ```
@@ -63,6 +64,8 @@ npm run build  # production build
 3. Define `VIEW_TYPE_ID` (e.g. `"your-format-view"`)
 4. Register in `src/main.ts` FILETYPE_MAP: `"ext": YourFormatFileView`
 5. Implement static `getFilePreview(plugin, file)` for embed support
+6. Add styles to `src/styles/preview.scss`
+7. Run `npm run build` to verify
 
 ## Architecture
 
@@ -72,8 +75,24 @@ ConvertibleFileView (abstract base class)
   ├── getMarkdownContent() → convert to MD
   └── convertFile() → trigger conversion
 
-FILETYPE_MAP = { "docx": DocxFileView, ... }  ← register new formats here
+FILETYPE_MAP = { "docx": DocxFileView, "csv": CsvFileView, ... }  ← register new formats here
+
+src/convertable-file-views/
+  ├── docx.ts       (Word - mammoth + docx-preview)
+  ├── csv.ts        (CSV - pure JS parser + HTML table)
+  ├── text.ts       (40+ text/code extensions - code block)
+  ├── html.ts       (HTML - sandboxed iframe + sanitization)
+  ├── audio.ts      (Audio - HTML5 player)
+  ├── zip.ts        (ZIP - pure JS central directory parser)
+  └── jupyter.ts    (Jupyter - JSON cell renderer)
 ```
+
+### Key Design Decisions
+
+- **No file size gating (yet)** — Phase 1 formats are lightweight. Phase 2 (XLSX, PDF) will need tiered preview.
+- **Pure JS only** — Phase 1 uses zero external libraries beyond what obsidian-docxer already bundles. JSZip, SheetJS, pdf.js etc. are Phase 2.
+- **Security first** — HTML is rendered in sandboxed iframes (`sandbox="allow-same-origin"`, no scripts). Scripts, iframes, forms, and event handlers are stripped.
+- **No override of Obsidian built-ins** — Image and video formats are not registered because Obsidian handles them well natively.
 
 ## License
 
