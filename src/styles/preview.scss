@@ -94,6 +94,21 @@
     max-height: 800px;
   }
 
+  .fv-text-lang {
+    margin-bottom: var(--size-4-1);
+
+    .fv-text-lang-tag {
+      display: inline-block;
+      padding: 1px 8px;
+      background-color: var(--background-modifier-border);
+      border-radius: var(--radius-s);
+      font-size: 0.75em;
+      font-family: var(--font-monospace);
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+  }
+
   .fv-text-info {
     margin-top: var(--size-4-2);
     font-size: 0.8em;
