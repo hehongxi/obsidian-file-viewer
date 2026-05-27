@@ -1,3 +1,4 @@
+import AudioFileView from "./convertable-file-views/audio"
 import CsvFileView from "./convertable-file-views/csv"
 import DocxFileView from "./convertable-file-views/docx"
 import HtmlFileView from "./convertable-file-views/html"
@@ -13,6 +14,13 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
   "csv": CsvFileView,
   "html": HtmlFileView,
   "htm": HtmlFileView,
+  "mp3": AudioFileView,
+  "wav": AudioFileView,
+  "ogg": AudioFileView,
+  "flac": AudioFileView,
+  "m4a": AudioFileView,
+  "aac": AudioFileView,
+  "wma": AudioFileView,
   // TODO: Phase 1
   // "ipynb": JupyterFileView,
   // "zip": ZipFileView,
