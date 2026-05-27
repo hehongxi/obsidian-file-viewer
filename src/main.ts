@@ -1,3 +1,4 @@
+import CsvFileView from "./convertable-file-views/csv"
 import DocxFileView from "./convertable-file-views/docx"
 import ConvertibleFileView from "./core/convertible-file-view"
 import FileViewerEmbedComponent from "./core/docxer-embed-component"
@@ -8,9 +9,15 @@ import { Plugin, TFile, WorkspaceLeaf } from "obsidian"
 // Add new format views here: "ext": FormatFileView
 export const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView } = {
   "docx": DocxFileView,
+  "csv": CsvFileView,
   // TODO: Phase 1 - pure JS formats
-  // "csv": CsvFileView,
   // "html": HtmlFileView,
+  // "htm": HtmlFileView,
+  // "txt": TextFileView,
+  // "json": TextFileView,
+  // "xml": TextFileView,
+  // "yaml": TextFileView,
+  // "yml": TextFileView,
   // "ipynb": JupyterFileView,
   // "zip": ZipFileView,
   // TODO: Phase 2 - JS library formats
