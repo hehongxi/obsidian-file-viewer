@@ -17,7 +17,7 @@ const context = await esbuild.context({
   banner: {
     js: banner,
   },
-  entryPoints: ["src/main.ts", "src/styles.scss"],
+  entryPoints: [{ in: "src/main.ts", out: "main" }, "src/styles.scss"],
   bundle: true,
   external: [
     "obsidian",
@@ -35,12 +35,14 @@ const context = await esbuild.context({
     "@lezer/lr",
     ...builtinModules
   ],
-  format: "cjs",
-  target: "es2018",
+  format: "esm",
+  splitting: true,
+  target: "es2020",
   logLevel: "info",
   sourcemap: prod ? false : "inline",
   treeShaking: true,
   outdir: "dist",
+  chunkNames: "chunks/[name]-[hash]",
   plugins: [
     sassPlugin({}),
     copy({

@@ -1,5 +1,3 @@
-import * as mammoth from "mammoth"
-import { renderAsync } from 'docx-preview'
 import ConvertibleFileView from "src/core/convertible-file-view"
 import FileUtils from "src/utils/file-utils"
 import ObsidianTurndown from "src/utils/obsidian-turndown"
@@ -9,44 +7,78 @@ import DocxerPlugin from "src/main"
 
 export default class DocxFileView extends ConvertibleFileView {
   static readonly VIEW_TYPE_ID = "docx-view"
+  private resizeObserver: ResizeObserver | null = null
 
   getViewType(): string {
     return DocxFileView.VIEW_TYPE_ID
   }
 
   static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
-    if (!file) return null
+    return (await DocxFileView.createFilePreview(plugin, file)).element
+  }
+
+  static async createFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<{ element: HTMLElement | null, observer: ResizeObserver | null }> {
+    if (!file) return { element: null, observer: null }
 
     const view = document.createElement("div")
 
-    const fileBuffer = await plugin.app.vault.readBinary(file)
+    let fileBuffer: ArrayBuffer
+    try {
+      fileBuffer = await plugin.app.vault.readBinary(file)
+    } catch (e) {
+      console.error("Failed to read DOCX file", file.path, e)
+      const wrapper = document.createElement("div")
+      wrapper.createEl("p", { text: `(Error reading file: ${file.basename})`, cls: "fv-error-message" })
+      return { element: wrapper, observer: null }
+    }
+    const { renderAsync } = await import('docx-preview')
     await renderAsync(fileBuffer, view, view, {
       renderComments: plugin.settings.getSetting("importComments"),
     })
 
     const docxWrapper = view.querySelector(".docx-wrapper") as HTMLElement | null
-    if (!docxWrapper) return view
+    if (!docxWrapper) return { element: view, observer: null }
 
     const docx = docxWrapper.querySelector(".docx") as HTMLElement | null
-    if (!docx) return view
+    if (!docx) return { element: view, observer: null }
 
-    new ResizeObserver(() => {
+    const observer = new ResizeObserver(() => {
       const scale = Math.min(1, view.clientWidth / docx.clientWidth)
       docxWrapper.style.transform = `scale(${scale})`
-    }).observe(view)
+    })
+    observer.observe(view)
 
-    return view
+    return { element: view, observer }
   }
 
   async getFilePreview(): Promise<HTMLElement | null> {
-    return DocxFileView.getFilePreview(this.plugin, this.file)
+    const { element, observer } = await DocxFileView.createFilePreview(this.plugin, this.file)
+    this.resizeObserver = observer
+    return element
+  }
+
+  async onUnloadFile(file: TFile): Promise<void> {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = null
+    }
+    await super.onUnloadFile(file)
   }
 
   async getMarkdownContent(attachmentsDirectory: string): Promise<string | null> {
     if (!this.file) return null
 
+    // Dynamic import: mammoth (~500KB) is only loaded when converting .docx
+    const mammoth = await import('mammoth')
+
     // Convert DOCX to HTML
-    const fileBuffer = await this.app.vault.readBinary(this.file)
+    let fileBuffer: ArrayBuffer
+    try {
+      fileBuffer = await this.app.vault.readBinary(this.file)
+    } catch (e) {
+      console.error("Failed to read DOCX file", this.file.path, e)
+      return `(Error reading file: ${this.file.basename})`
+    }
     const embedImageData = this.plugin.settings.getSetting("embedImageData")
     const ignoreAttachments = this.plugin.settings.getSetting("ignoreAttachments")
     
