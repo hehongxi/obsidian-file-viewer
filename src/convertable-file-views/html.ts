@@ -1,15 +1,15 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
 import DocxerPlugin from "src/main"
 import { htmlToMarkdown, TFile } from "obsidian"
+import DOMPurify from "dompurify"
 
 /**
  * HTML File View
  * 
  * Preview: Renders HTML in a sandboxed iframe using srcdoc.
  *          Security: sandbox="allow-same-origin" only — no scripts execute.
+ *                   DOMPurify sanitizes all content before rendering.
  * Convert: Uses Obsidian's built-in htmlToMarkdown to extract content.
- * 
- * Pure JS implementation — no external libraries needed.
  */
 
 export default class HtmlFileView extends ConvertibleFileView {
@@ -20,24 +20,32 @@ export default class HtmlFileView extends ConvertibleFileView {
   }
 
   /**
-   * Sanitize HTML for sandboxed rendering.
-   * Removes <script>, <iframe>, <object>, <embed>, <form>, event handlers.
+   * Sanitize HTML using DOMPurify.
+   * Defense-in-depth: even though the iframe is sandboxed, allow-same-origin
+   * means CSS/redirect exfiltration is still possible without sanitization.
+   *
+   * Fixes three classes of bypass that the old regex sanitizer had:
+   *   1. Nested tag injection: `<scr<script>ipt>` (mXSS)
+   *   2. SVG/MathML event handlers: onbegin, onend, onrepeat
+   *   3. CSS exfiltration: background-image: url(...)
    */
   static sanitizeHTML(html: string): string {
-    // Remove script tags and their content
-    let safe = html.replace(/<script[\s\S]*?<\/script>/gi, "")
-    // Remove noscript
-    safe = safe.replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
-    // Remove iframe/object/embed
-    safe = safe.replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
-    safe = safe.replace(/<object[\s\S]*?<\/object>/gi, "")
-    safe = safe.replace(/<embed[^>]*>/gi, "")
-    // Remove form elements (prevent data exfiltration)
-    safe = safe.replace(/<form[\s\S]*?<\/form>/gi, "")
-    // Remove inline event handlers (onclick, onload, etc.)
-    safe = safe.replace(/\s+on\w+\s*=\s*(['"])[\s\S]*?\1/gi, "")
-    safe = safe.replace(/\s+on\w+\s*=\s*[^\s>]*/gi, "")
-    return safe
+    return DOMPurify.sanitize(html, {
+      // Default tag/attr blocklist covers script, iframe, object, embed, form, etc.
+      FORBID_TAGS: [
+        "style",       // prevent CSS exfiltration via url()
+        "math",        // MathML can carry event handlers
+        "svg",         // SVG animation elements (set/animate) can execute JS
+        "template",    // template content bypasses normal parsing
+      ],
+      FORBID_ATTR: [
+        "style",       // block inline style with url() exfiltration
+      ],
+      // Strip HTML comments (can hide conditional IE exploits)
+      ALLOW_COMMENTS: false,
+      // Return sanitized string
+      RETURN_TRUSTED_TYPE: false,
+    })
   }
 
   /**
@@ -50,7 +58,16 @@ export default class HtmlFileView extends ConvertibleFileView {
 
   static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
-    const rawHTML = await plugin.app.vault.read(file)
+    let rawHTML: string
+    try {
+      rawHTML = await plugin.app.vault.read(file)
+    } catch (e) {
+      console.error("Failed to read HTML file", file.path, e)
+      const wrapper = document.createElement("div")
+      wrapper.addClass("fv-html-wrapper")
+      wrapper.createEl("p", { text: `(Error reading file: ${file.basename})`, cls: "fv-error-message" })
+      return wrapper
+    }
     const safeHTML = HtmlFileView.sanitizeHTML(rawHTML)
 
     const wrapper = document.createElement("div")
@@ -88,7 +105,13 @@ export default class HtmlFileView extends ConvertibleFileView {
 
   async getMarkdownContent(attachmentsDirectory: string): Promise<string | null> {
     if (!this.file) return null
-    const rawHTML = await this.app.vault.read(this.file)
+    let rawHTML: string
+    try {
+      rawHTML = await this.app.vault.read(this.file)
+    } catch (e) {
+      console.error("Failed to read HTML file", this.file.path, e)
+      return `(Error reading file: ${this.file.basename})`
+    }
 
     // Extract body content, strip scripts
     const bodyHTML = HtmlFileView.extractBody(rawHTML)
