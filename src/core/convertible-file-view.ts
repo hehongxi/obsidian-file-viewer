@@ -1,12 +1,15 @@
 import { EditableFileView, Notice, TFile, TextFileView, WorkspaceLeaf } from "obsidian"
 import DocxerPlugin from "src/main"
 import FileUtils from "src/utils/file-utils"
+import { FileSizeGate, PreviewTier } from "./file-size-gate"
 
 export default abstract class ConvertibleFileView extends EditableFileView {
   plugin: DocxerPlugin
   fileContent: string
   header: HTMLElement | null = null
   content: HTMLElement | null = null
+  /** Current preview tier for the loaded file — set in onLoadFile before getFilePreview(). */
+  previewTier: PreviewTier = "full"
 
 	constructor(leaf: WorkspaceLeaf, plugin: DocxerPlugin) {
 		super(leaf)
@@ -49,8 +52,19 @@ export default abstract class ConvertibleFileView extends EditableFileView {
 	async onLoadFile(file: TFile) {
 		await super.onLoadFile(file)
 
-    this.content = await this.getFilePreview()
-    if (this.content) this.contentEl.appendChild(this.content)
+    // Phase 0: check file size before loading preview
+    this.previewTier = await FileSizeGate.getPreviewTier(file)
+
+    if (this.previewTier === "metadata") {
+      this.content = this.createMetadataPreview(file)
+    } else {
+      this.content = await this.getFilePreview()
+    }
+
+    if (this.content) {
+      this.content.setAttribute("data-fv-tier", this.previewTier)
+      this.contentEl.appendChild(this.content)
+    }
 	}
 
 	async onUnloadFile(file: TFile) {
@@ -67,6 +81,49 @@ export default abstract class ConvertibleFileView extends EditableFileView {
 	getViewData(): string {
     return this.fileContent
 	}
+
+  /**
+   * Create a metadata-only preview for files >200MB.
+   * Shows filename, size, modification time — no content loaded.
+   */
+  private createMetadataPreview(file: TFile): HTMLElement {
+    const wrapper = document.createElement("div")
+    wrapper.className = "fv-metadata-preview"
+
+    const title = document.createElement("h2")
+    title.textContent = file.basename
+    wrapper.appendChild(title)
+
+    const table = document.createElement("table")
+    table.className = "fv-metadata-table"
+
+    const sizeMB = (file.stat.size / (1024 * 1024)).toFixed(1)
+    const mtime = new Date(file.stat.mtime).toLocaleString()
+    const rows: [string, string][] = [
+      ["Path", file.path],
+      ["Size", `${sizeMB} MB`],
+      ["Modified", mtime],
+    ]
+    for (const [label, value] of rows) {
+      const tr = document.createElement("tr")
+      const tdLabel = document.createElement("td")
+      tdLabel.textContent = label
+      tdLabel.className = "fv-metadata-label"
+      const tdValue = document.createElement("td")
+      tdValue.textContent = value
+      tr.appendChild(tdLabel)
+      tr.appendChild(tdValue)
+      table.appendChild(tr)
+    }
+    wrapper.appendChild(table)
+
+    const note = document.createElement("p")
+    note.className = "fv-metadata-note"
+    note.textContent = "File too large for preview (>200MB). Convert to Markdown to view content."
+    wrapper.appendChild(note)
+
+    return wrapper
+  }
 
   abstract getMarkdownContent(attachmentsDirectory: string): Promise<string | null>
   private async convertFile() {
