@@ -2,6 +2,7 @@ import AudioFileView from "./convertable-file-views/audio"
 import CsvFileView from "./convertable-file-views/csv"
 import DocxFileView from "./convertable-file-views/docx"
 import HtmlFileView from "./convertable-file-views/html"
+import JupyterFileView from "./convertable-file-views/jupyter"
 import TextFileView, { TEXT_EXTENSIONS } from "./convertable-file-views/text"
 import ZipFileView from "./convertable-file-views/zip"
 import ConvertibleFileView from "./core/convertible-file-view"
@@ -23,8 +24,7 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
   "aac": AudioFileView,
   "wma": AudioFileView,
   "zip": ZipFileView,
-  // TODO: Phase 1
-  // "ipynb": JupyterFileView,
+  "ipynb": JupyterFileView,
   // TODO: Phase 2
   // "xlsx": XlsxFileView,
   // "pdf": PdfFileView,
