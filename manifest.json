@@ -1,0 +1,10 @@
+{
+	"id": "file-viewer",
+	"name": "File Viewer",
+	"version": "0.1.0",
+	"minAppVersion": "1.5.0",
+	"description": "Preview and convert multiple file formats (DOCX, XLSX, PDF, EPUB, CSV, etc.) to Markdown. Based on obsidian-docxer with extended format support.",
+	"author": "hehongxi",
+	"authorUrl": "https://github.com/hehongxi",
+	"isDesktopOnly": false
+}
