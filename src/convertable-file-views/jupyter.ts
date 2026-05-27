@@ -1,6 +1,7 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
 import DocxerPlugin from "src/main"
 import { TFile } from "obsidian"
+import DOMPurify from "dompurify"
 
 /**
  * Jupyter Notebook (.ipynb) File View
@@ -104,7 +105,7 @@ function renderOutput(output: NotebookOutput, container: HTMLElement) {
         }
         if (output.data["text/html"]) {
           const wrapper = container.createEl("div", { cls: "fv-ipynb-html" })
-          wrapper.innerHTML = asString(output.data["text/html"])
+          wrapper.innerHTML = DOMPurify.sanitize(asString(output.data["text/html"]))
         }
         if (output.data["image/png"]) {
           const img = container.createEl("img", { cls: "fv-ipynb-img" })
@@ -179,7 +180,15 @@ export default class JupyterFileView extends ConvertibleFileView {
 
   static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
-    const text = await plugin.app.vault.read(file)
+    let text: string
+    try {
+      text = await plugin.app.vault.read(file)
+    } catch (e) {
+      console.error("Failed to read Jupyter file", file.path, e)
+      const wrapper = document.createElement("div")
+      wrapper.createEl("p", { text: `(Error reading file: ${file.basename})`, cls: "fv-error-message" })
+      return wrapper
+    }
     const notebook = parseNotebook(text)
     if (!notebook) {
       const wrapper = document.createElement("div")
@@ -226,7 +235,13 @@ export default class JupyterFileView extends ConvertibleFileView {
 
   async getMarkdownContent(attachmentsDirectory: string): Promise<string | null> {
     if (!this.file) return null
-    const text = await this.app.vault.read(this.file)
+    let text: string
+    try {
+      text = await this.app.vault.read(this.file)
+    } catch (e) {
+      console.error("Failed to read Jupyter file", this.file.path, e)
+      return `(Error reading file: ${this.file.basename})`
+    }
     const notebook = parseNotebook(text)
     if (!notebook) return "(invalid notebook JSON)"
 

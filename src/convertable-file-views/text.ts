@@ -96,7 +96,16 @@ export default class TextFileView extends ConvertibleFileView {
 
   static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
-    const text = await plugin.app.vault.read(file)
+    let text: string
+    try {
+      text = await plugin.app.vault.read(file)
+    } catch (e) {
+      console.error("Failed to read text file", file.path, e)
+      const wrapper = document.createElement("div")
+      wrapper.addClass("fv-text-wrapper")
+      wrapper.createEl("p", { text: `(Error reading file: ${file.basename})`, cls: "fv-error-message" })
+      return wrapper
+    }
     const ext = file.extension.toLowerCase()
     const lang = EXT_TO_LANG[ext] ?? ""
 
@@ -138,7 +147,13 @@ export default class TextFileView extends ConvertibleFileView {
 
   async getMarkdownContent(attachmentsDirectory: string): Promise<string | null> {
     if (!this.file) return null
-    const text = await this.app.vault.read(this.file)
+    let text: string
+    try {
+      text = await this.app.vault.read(this.file)
+    } catch (e) {
+      console.error("Failed to read text file", this.file.path, e)
+      return `(Error reading file: ${this.file.basename})`
+    }
     const lang = this.getLangTag()
 
     // JSON: pretty-print

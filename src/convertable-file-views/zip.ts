@@ -157,7 +157,16 @@ export default class ZipFileView extends ConvertibleFileView {
   static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
 
-    const buffer = await plugin.app.vault.readBinary(file)
+    let buffer: ArrayBuffer
+    try {
+      buffer = await plugin.app.vault.readBinary(file)
+    } catch (e) {
+      console.error("Failed to read ZIP file", file.path, e)
+      const wrapper = document.createElement("div")
+      wrapper.addClass("fv-zip-wrapper")
+      wrapper.createEl("p", { text: `(Error reading file: ${file.basename})`, cls: "fv-error-message" })
+      return wrapper
+    }
     const entries = parseZipEntries(buffer)
 
     const wrapper = document.createElement("div")
@@ -192,7 +201,13 @@ export default class ZipFileView extends ConvertibleFileView {
   async getMarkdownContent(attachmentsDirectory: string): Promise<string | null> {
     if (!this.file) return null
 
-    const buffer = await this.app.vault.readBinary(this.file)
+    let buffer: ArrayBuffer
+    try {
+      buffer = await this.app.vault.readBinary(this.file)
+    } catch (e) {
+      console.error("Failed to read ZIP file", this.file.path, e)
+      return `(Error reading file: ${this.file.basename})`
+    }
     const entries = parseZipEntries(buffer)
 
     const lines: string[] = []
