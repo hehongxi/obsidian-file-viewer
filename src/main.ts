@@ -1,5 +1,6 @@
 import CsvFileView from "./convertable-file-views/csv"
 import DocxFileView from "./convertable-file-views/docx"
+import HtmlFileView from "./convertable-file-views/html"
 import TextFileView, { TEXT_EXTENSIONS } from "./convertable-file-views/text"
 import ConvertibleFileView from "./core/convertible-file-view"
 import FileViewerEmbedComponent from "./core/docxer-embed-component"
@@ -7,13 +8,12 @@ import SettingsManager from "./settings"
 import { Plugin, TFile, WorkspaceLeaf } from "obsidian"
 
 // Based on obsidian-docxer's FILETYPE_MAP pattern
-// Add new format views here: "ext": FormatFileView
 const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView } = {
   "docx": DocxFileView,
   "csv": CsvFileView,
+  "html": HtmlFileView,
+  "htm": HtmlFileView,
   // TODO: Phase 1
-  // "html": HtmlFileView,
-  // "htm": HtmlFileView,
   // "ipynb": JupyterFileView,
   // "zip": ZipFileView,
   // TODO: Phase 2
@@ -26,7 +26,7 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
 
 // Extensions already handled by Obsidian or other format views
 const SKIP_EXTENSIONS = new Set([
-  "md", "csv", "docx",
+  "md", "csv", "docx", "html", "htm",
   "png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico", "avif",
   "mp3", "wav", "ogg", "flac", "m4a", "aac", "wma",
   "mp4", "webm", "ogv", "avi", "mov",
