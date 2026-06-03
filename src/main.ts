@@ -3,9 +3,9 @@ import CsvFileView from "./convertable-file-views/csv"
 import DocxFileView from "./convertable-file-views/docx"
 import EpubFileView from "./convertable-file-views/epub"
 import HtmlFileView from "./convertable-file-views/html"
-import ImageFileView from "./convertable-file-views/image"
 import JupyterFileView from "./convertable-file-views/jupyter"
 import PdfFileView from "./convertable-file-views/pdf"
+import PptxFileView from "./convertable-file-views/pptx"
 import TextFileView, { TEXT_EXTENSIONS } from "./convertable-file-views/text"
 import XlsxFileView from "./convertable-file-views/xlsx"
 import ZipFileView from "./convertable-file-views/zip"
@@ -35,27 +35,19 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
   "wma": AudioFileView,
   "zip": ZipFileView,
   "ipynb": JupyterFileView,
-  // Image formats
-  "jpg": ImageFileView,
-  "jpeg": ImageFileView,
-  "png": ImageFileView,
-  "gif": ImageFileView,
-  "webp": ImageFileView,
-  "bmp": ImageFileView,
-  "svg": ImageFileView,
   // Excel / Spreadsheets
   "xlsx": XlsxFileView,
   "xls": XlsxFileView,
   "pdf": PdfFileView,
   "epub": EpubFileView,
-  // TODO: Phase 3
-  // "pptx": PptxFileView,
+  "pptx": PptxFileView,
 }
 
 // Extensions already handled by Obsidian or other format views
 const SKIP_EXTENSIONS = new Set([
   "md", "csv", "docx", "html", "htm",
-  "ico", "avif",
+  // Image formats — native in Obsidian (Chromium-based)
+  "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico", "avif",
   "mp3", "wav", "ogg", "flac", "m4a", "aac", "wma",
   "mp4", "webm", "ogv", "avi", "mov",
   "xlsx", "xls",

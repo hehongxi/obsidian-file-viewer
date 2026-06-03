@@ -28,6 +28,7 @@
 		"monkey-around": "^2.3.0",
 		"papaparse": "^5.5.3",
 		"pdfjs-dist": "^3.11.174",
+		"pptx-browser": "^4.1.5",
 		"sass": "^1.70.0",
 		"turndown": "^7.2.0",
 		"xlsx": "^0.18.5"
