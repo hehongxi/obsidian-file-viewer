@@ -143,7 +143,10 @@ export default abstract class ConvertibleFileView extends EditableFileView {
     return wrapper
   }
 
-  abstract getMarkdownContent(attachmentsDirectory: string): Promise<string | null>
+  /** Override in subclasses that support Markdown conversion. Preview-only views can leave this as-is. */
+  async getMarkdownContent(_attachmentsDirectory: string): Promise<string | null> {
+    return null
+  }
   private async convertFile() {
     if (!this.file) return
 

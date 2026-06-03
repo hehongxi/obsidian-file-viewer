@@ -32,6 +32,7 @@
 		"sass": "^1.70.0",
 		"turndown": "^7.2.0",
 		"word-extractor": "^1.0.4",
+		"x-data-spreadsheet": "^1.1.9",
 		"xlsx": "^0.18.5"
 	}
 }

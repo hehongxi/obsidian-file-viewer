@@ -4,18 +4,15 @@ import { TFile } from "obsidian"
 
 /**
  * XLSX / Excel File View
- * 
- * Preview: Sheet tabs + first sheet rendered as HTML table (first 100 rows).
- * Convert: All sheets → Markdown tables, separated by H2 headers.
- * 
- * Uses SheetJS (xlsx) via dynamic import (~500KB, loaded on demand).
- * Files >50MB degrade to metadata-only mode (sheet names, no table data).
- * 
+ *
+ * Preview: x-data-spreadsheet Canvas renderer (Excel-like appearance).
+ * Uses SheetJS for parsing + stox() conversion to x-data-spreadsheet format.
+ *
  * Supports: .xlsx (Office Open XML), .xls (legacy binary)
  */
 
 /** Max rows to render in preview (safety limit) */
-const PREVIEW_MAX_ROWS = 100
+const PREVIEW_MAX_ROWS = 5000
 
 /** File size threshold for metadata-only mode (50MB) */
 const SIZE_GATE_BYTES = 50 * 1024 * 1024
@@ -27,74 +24,28 @@ function formatSize(bytes: number): string {
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB"
 }
 
-/** Escape pipe characters in cell values for Markdown tables */
-function escapePipe(val: string): string {
-  return val.replace(/\|/g, "\\|").replace(/\n/g, " ")
-}
-
 /**
- * Build an HTML table from a 2D array of cells.
- * First row is treated as header.
+ * Convert SheetJS workbook → x-data-spreadsheet data format.
+ * From SheetJS official demo: https://docs.sheetjs.com/docs/demos/grid/xs
  */
-function buildHTMLTable(
-  rows: string[][],
-  maxRows: number,
-  wrapper: HTMLElement
-): void {
-  if (rows.length === 0) {
-    wrapper.createEl("p", { text: "(Empty sheet)" })
-    return
-  }
-
-  const headerRow = rows[0]
-  const dataRows = rows.slice(1, maxRows)
-
-  const table = wrapper.createEl("table", { cls: "fv-xlsx-table" })
-
-  // Header
-  const thead = table.createEl("thead")
-  const tr = thead.createEl("tr")
-  for (const cell of headerRow) {
-    tr.createEl("th", { text: cell })
-  }
-
-  // Data rows
-  if (dataRows.length > 0) {
-    const tbody = table.createEl("tbody")
-    const numCols = headerRow.length
-    for (const row of dataRows) {
-      const dataTr = tbody.createEl("tr")
-      for (let j = 0; j < numCols; j++) {
-        dataTr.createEl("td", { text: j < row.length ? row[j] : "" })
-      }
-    }
-  }
-
-  // Truncation notice
-  if (rows.length - 1 > maxRows) {
-    const notice = wrapper.createEl("div", { cls: "fv-xlsx-truncated" })
-    notice.createEl("span", {
-      text: `Showing ${maxRows} of ${rows.length - 1} data rows`
+function stox(workbook: { SheetNames: string[]; Sheets: Record<string, unknown> }): unknown[] {
+  const out: unknown[] = []
+  const XLSX = require("xlsx")
+  workbook.SheetNames.forEach((name: string) => {
+    const o: { name: string; rows: Record<number, { cells: Record<number, { text: string }> }> } = { name, rows: {} }
+    const ws = workbook.Sheets[name]
+    const aoa: string[][] = XLSX.utils.sheet_to_json(ws, { raw: false, header: 1 })
+    let rowCount = 0
+    aoa.forEach((r: string[], i: number) => {
+      if (rowCount >= PREVIEW_MAX_ROWS) return
+      const cells: Record<number, { text: string }> = {}
+      r.forEach((c: string, j: number) => { cells[j] = { text: String(c ?? "") } })
+      o.rows[i] = { cells }
+      rowCount++
     })
-  }
-}
-
-/**
- * Render sheet tabs (visual switcher — display-only, no JS interaction).
- */
-function buildSheetTabs(
-  sheetNames: string[],
-  activeIndex: number,
-  wrapper: HTMLElement
-): void {
-  const tabsDiv = wrapper.createEl("div", { cls: "fv-xlsx-tabs" })
-  for (let i = 0; i < sheetNames.length; i++) {
-    const tab = tabsDiv.createEl("span", {
-      text: sheetNames[i],
-      cls: "fv-xlsx-tab" + (i === activeIndex ? " fv-xlsx-tab-active" : "")
-    })
-    tab.setAttribute("data-sheet-index", String(i))
-  }
+    out.push(o)
+  })
+  return out
 }
 
 export default class XlsxFileView extends ConvertibleFileView {
@@ -133,7 +84,7 @@ export default class XlsxFileView extends ConvertibleFileView {
     // Dynamic import: SheetJS (~500KB) loaded on demand
     const XLSX = await import("xlsx")
 
-    let workbook: unknown
+    let workbook: { SheetNames: string[]; Sheets: Record<string, unknown> }
     try {
       workbook = XLSX.read(new Uint8Array(buffer), { type: "array" })
     } catch (e) {
@@ -145,33 +96,54 @@ export default class XlsxFileView extends ConvertibleFileView {
       return wrapper
     }
 
-    const sheetNames: string[] = workbook.SheetNames
+    const sheetNames = workbook.SheetNames
     if (sheetNames.length === 0) {
       wrapper.createEl("p", { text: "(No sheets)" })
       return wrapper
     }
 
-    // Sheet tabs
-    buildSheetTabs(sheetNames, 0, wrapper)
+    // Convert SheetJS workbook → x-data-spreadsheet format
+    const xsData = stox(workbook as unknown as { SheetNames: string[]; Sheets: Record<string, unknown> })
 
-    // First sheet preview
-    const firstSheet = workbook.Sheets[sheetNames[0]]
-    const csvData: string[][] = XLSX.utils.sheet_to_json(firstSheet, {
-      header: 1,
-      defval: "",
-      blankrows: false
-    })
+    // Dynamic import: x-data-spreadsheet (~197KB) loaded on demand
+    // Import from dist (pre-built) to avoid .less file issues
+    const xSpreadsheet = (await import("x-data-spreadsheet/dist/xspreadsheet.js")).default
 
-    const tableWrapper = wrapper.createEl("div", { cls: "fv-xlsx-table-wrapper" })
-    buildHTMLTable(csvData, PREVIEW_MAX_ROWS, tableWrapper)
+    // Container for the Canvas spreadsheet
+    const container = wrapper.createEl("div", { cls: "fv-xlsx-canvas-container" })
+
+    try {
+      // Initialize x-data-spreadsheet (Canvas renderer)
+      const grid = xSpreadsheet(container, {
+        mode: "read",       // read-only
+        showToolbar: false,  // no toolbar in preview
+        showContextmenu: false,
+        view: {
+          height: () => 600,
+          width: () => container.clientWidth || 800,
+        },
+        row: { len: PREVIEW_MAX_ROWS, height: 25 },
+        col: { len: 52, width: 100, indexWidth: 60, minWidth: 60 },
+      })
+
+      // Load data
+      grid.loadData(xsData)
+
+      // If multiple sheets, show sheet tabs via x-data-spreadsheet's built-in tabs
+      // (it handles this automatically with loadData array)
+    } catch (e) {
+      console.error("Failed to render xlsx with x-data-spreadsheet", file.path, e)
+      // Fallback: show basic info
+      wrapper.createEl("p", {
+        text: `(Rendering error: ${file.basename})`,
+        cls: "fv-error-message"
+      })
+    }
 
     // Info footer
     const info = wrapper.createEl("div", { cls: "fv-xlsx-info" })
-    const totalRows = csvData.length > 0 ? csvData.length - 1 : 0
-    const totalCols = csvData.length > 0 ? csvData[0].length : 0
     const parts: string[] = [
       `${sheetNames.length} sheet${sheetNames.length !== 1 ? "s" : ""}`,
-      `${totalRows} rows × ${totalCols} columns`,
       formatSize(buffer.byteLength)
     ]
     info.createEl("span", { text: parts.join(" · ") })
@@ -196,7 +168,7 @@ export default class XlsxFileView extends ConvertibleFileView {
     })
 
     wrapper.createEl("p", {
-      text: "This excel file exceeds 50mb. Sheet preview is disabled to avoid freezing Obsidian. You can still convert it to Markdown in smaller chunks via an external tool.",
+      text: "This excel file exceeds 50mb. Sheet preview is disabled to avoid freezing Obsidian.",
       cls: "fv-xlsx-metadata-note"
     })
 
