@@ -263,7 +263,99 @@
   }
 }
 
-// ── Metadata Preview (>200MB files) ────────────────────────────────────────
+// ── EPUB Preview (sandboxed iframe with epubjs reader) ────────────────────
+.fv-epub-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+
+  iframe.fv-epub-iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    border: none;
+    background: var(--background-primary);
+  }
+
+  .fv-error-message {
+    padding: var(--size-4-8);
+    color: var(--text-muted);
+    text-align: center;
+  }
+}
+
+// ── PDF Preview ──────────────────────────────────────────────────────────────
+
+.fv-pdf-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--size-4-2);
+  gap: var(--size-4-2);
+}
+
+.fv-pdf-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) 0;
+
+  .fv-pdf-nav-btn {
+    padding: 4px 14px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 0.9em;
+
+    &:hover:not(:disabled) {
+      background: var(--background-modifier-hover);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  .fv-pdf-page-info {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    min-width: 80px;
+    text-align: center;
+  }
+}
+
+.fv-pdf-canvas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-4-3);
+  overflow-y: auto;
+  width: 100%;
+}
+
+.fv-pdf-canvas {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &.fv-pdf-canvas-adjacent {
+    opacity: 0.45;
+    filter: grayscale(30%);
+  }
+}
+
+.fv-error-message {
+  padding: var(--size-4-8);
+  color: var(--text-muted);
+  text-align: center;
+}
+
 .fv-metadata-preview {
   display: flex;
   flex-direction: column;
@@ -302,5 +394,128 @@
     color: var(--text-muted);
     text-align: center;
     max-width: 360px;
+  }
+}
+
+// ── XLSX / Excel Preview ───────────────────────────────────────────────────
+.fv-xlsx-wrapper {
+  padding: var(--size-4-2);
+  overflow: auto;
+
+  .fv-xlsx-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: var(--size-4-2);
+    border-bottom: 2px solid var(--background-modifier-border);
+
+    .fv-xlsx-tab {
+      padding: 4px 14px;
+      font-size: 0.85em;
+      color: var(--text-muted);
+      border-radius: var(--radius-s) var(--radius-s) 0 0;
+      cursor: default;
+      user-select: none;
+
+      &.fv-xlsx-tab-active {
+        color: var(--text-normal);
+        background-color: var(--background-secondary);
+        font-weight: 600;
+      }
+    }
+  }
+
+  .fv-xlsx-table-wrapper {
+    overflow: auto;
+    max-height: 70vh;
+  }
+
+  .fv-xlsx-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: var(--font-monospace);
+
+    th, td {
+      padding: 4px 10px;
+      border: 1px solid var(--background-modifier-border);
+      text-align: left;
+      white-space: nowrap;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    th {
+      background-color: var(--background-secondary);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: var(--background-secondary-alt);
+    }
+
+    tbody tr:hover {
+      background-color: var(--background-modifier-hover);
+    }
+  }
+
+  .fv-xlsx-truncated {
+    margin-top: var(--size-4-2);
+    padding: 4px 10px;
+    font-size: 0.8em;
+    color: var(--text-warning);
+    text-align: center;
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-s);
+  }
+
+  .fv-xlsx-info {
+    margin-top: var(--size-4-2);
+    font-size: 0.8em;
+    color: var(--text-muted);
+    text-align: right;
+  }
+}
+
+// Metadata-only mode
+.fv-xlsx-metadata {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--size-4-8);
+  gap: var(--size-4-3);
+  min-height: 200px;
+
+  .fv-xlsx-metadata-header {
+    font-size: 1.1em;
+    color: var(--text-warning);
+    text-align: center;
+  }
+
+  .fv-xlsx-sheet-list {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 0;
+    margin: 0;
+    list-style-position: inside;
+  }
+
+  .fv-xlsx-info {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .fv-xlsx-metadata-note {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 420px;
+    line-height: 1.5;
   }
 }

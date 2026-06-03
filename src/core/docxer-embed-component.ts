@@ -6,11 +6,11 @@ export default class DocxerEmbedComponent extends Component {
   plugin: DocxerPlugin
   view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView
 
-  info: any
+  info: unknown
   file: TFile
   subpath: string
 
-  constructor(plugin: DocxerPlugin, view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView, info: any, file: TFile, subpath: string) {
+  constructor(plugin: DocxerPlugin, view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView, info: unknown, file: TFile, subpath: string) {
     super()
 
     this.plugin = plugin
@@ -25,13 +25,13 @@ export default class DocxerEmbedComponent extends Component {
 
   // override
   async loadFile() {
-    const preview = await (this.view as any).getFilePreview(this.plugin, this.file)
+    const preview = await (this.view as unknown).getFilePreview(this.plugin, this.file)
     if (!preview) return
 
     this.info.containerEl.appendChild(preview)
   }
 
   static isEmbeddable(view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView) {
-    return (view as any).getFilePreview !== undefined
+    return (view as unknown).getFilePreview !== undefined
   }
 }

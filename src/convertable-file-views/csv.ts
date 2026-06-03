@@ -1,15 +1,72 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
 import DocxerPlugin from "src/main"
-import { htmlToMarkdown, TFile } from "obsidian"
+import { TFile } from "obsidian"
+import * as Papa from "papaparse"
 
 /**
  * CSV File View
  * 
  * Preview: Renders CSV as an HTML table with alternating row colors.
- * Convert: Converts CSV to Markdown table format.
+ * Convert: Converts CSV to Markdown table with GFM alignment via Papa Parse.
  * 
- * Pure JS implementation — no external libraries needed.
+ * Uses Papa Parse for robust, spec-compliant CSV parsing (RFC 4180).
  */
+
+type Alignment = "left" | "center" | "right" | "none"
+
+function isNumeric(val: string): boolean {
+  // Match integers, decimals, scientific notation, percentages, currency symbols
+  const cleaned = val.replace(/^[$\u00a3\u00a5\u20ac\u00a2\s%-]+|[%\s]+$/g, "")
+  if (cleaned === "") return false
+  return !isNaN(Number(cleaned)) && isFinite(Number(cleaned))
+}
+
+/**
+ * Determine GFM alignment for each column by scanning data rows.
+ * Numbers → right-aligned, text → left-aligned, all-empty → no alignment.
+ */
+function getColumnAlignments(rows: string[][], headerRowCount: number): Alignment[] {
+  if (rows.length <= headerRowCount) {
+    return rows[0]?.map(() => "none") ?? []
+  }
+
+  const colCount = rows[0].length
+  const alignments: Alignment[] = []
+
+  for (let col = 0; col < colCount; col++) {
+    let allNumeric = true
+    let allEmpty = true
+
+    for (let row = headerRowCount; row < rows.length; row++) {
+      const val = (rows[row][col] ?? "").trim()
+      if (val !== "") {
+        allEmpty = false
+        if (!isNumeric(val)) {
+          allNumeric = false
+        }
+      }
+    }
+
+    if (allEmpty) {
+      alignments.push("none")
+    } else if (allNumeric) {
+      alignments.push("right")
+    } else {
+      alignments.push("left")
+    }
+  }
+
+  return alignments
+}
+
+function alignmentToGFM(a: Alignment): string {
+  switch (a) {
+    case "left":   return ":---"
+    case "center": return ":---:"
+    case "right":  return "---:"
+    default:       return "---"
+  }
+}
 
 export default class CsvFileView extends ConvertibleFileView {
   static readonly VIEW_TYPE_ID = "csv-view"
@@ -19,58 +76,16 @@ export default class CsvFileView extends ConvertibleFileView {
   }
 
   /**
-   * Parse CSV text into a 2D array, handling quoted fields with commas/newlines.
+   * Parse CSV text into a 2D array using Papa Parse (RFC 4180 compliant).
+   * Handles quoted fields, escaped quotes, embedded delimiters, multi-line fields.
    */
   static parseCSV(text: string): string[][] {
-    const rows: string[][] = []
-    let current: string[] = []
-    let field = ""
-    let inQuotes = false
-
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i]
-
-      if (inQuotes) {
-        if (ch === '"') {
-          // Check for escaped quote ""
-          if (i + 1 < text.length && text[i + 1] === '"') {
-            field += '"'
-            i++ // skip next quote
-          } else {
-            inQuotes = false
-          }
-        } else {
-          field += ch
-        }
-      } else {
-        if (ch === '"') {
-          inQuotes = true
-        } else if (ch === ',') {
-          current.push(field.trim())
-          field = ""
-        } else if (ch === '\n' || ch === '\r') {
-          current.push(field.trim())
-          field = ""
-          if (current.length > 0 && !(current.length === 1 && current[0] === "")) {
-            rows.push(current)
-          }
-          current = []
-          if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') i++ // skip \n in \r\n
-        } else {
-          field += ch
-        }
-      }
-    }
-
-    // Last field/row
-    if (field || current.length > 0) {
-      current.push(field.trim())
-      if (current.length > 0 && !(current.length === 1 && current[0] === "")) {
-        rows.push(current)
-      }
-    }
-
-    return rows
+    const result = Papa.parse<string[]>(text, {
+      header: false,
+      skipEmptyLines: true,
+      transform: (value: string) => value.trim(),
+    })
+    return result.data
   }
 
   /**
@@ -81,7 +96,7 @@ export default class CsvFileView extends ConvertibleFileView {
     wrapper.addClass("fv-csv-wrapper")
 
     if (rows.length === 0) {
-      wrapper.createEl("p", { text: "(empty CSV)" })
+      wrapper.createEl("p", { text: "(Empty CSV)" })
       return wrapper
     }
 
@@ -143,26 +158,30 @@ export default class CsvFileView extends ConvertibleFileView {
       console.error("Failed to read CSV file", this.file.path, e)
       return `(Error reading file: ${this.file.basename})`
     }
-    const rows = CsvFileView.parseCSV(text)
 
+    const rows = CsvFileView.parseCSV(text)
     if (rows.length === 0) return "(empty CSV)"
 
-    // Convert to Markdown table
-    const maxCols = Math.max(...rows.map(r => r.length))
-    const lines: string[] = []
-
     // Normalize all rows to same column count
+    const maxCols = Math.max(...rows.map(r => r.length))
     const normalized = rows.map(row => {
       const padded = [...row]
       while (padded.length < maxCols) padded.push("")
       return padded
     })
 
-    // Header
-    lines.push("| " + normalized[0].join(" | ") + " |")
-    lines.push("| " + normalized[0].map(() => "---").join(" | ") + " |")
+    // GFM alignment based on column content types
+    const alignments = getColumnAlignments(normalized, 1)
 
-    // Body
+    const lines: string[] = []
+
+    // Header row
+    lines.push("| " + normalized[0].join(" | ") + " |")
+
+    // Separator row with alignment
+    lines.push("| " + alignments.map(alignmentToGFM).join(" | ") + " |")
+
+    // Body rows
     for (let i = 1; i < normalized.length; i++) {
       lines.push("| " + normalized[i].join(" | ") + " |")
     }

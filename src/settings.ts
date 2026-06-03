@@ -1,4 +1,4 @@
-import { Notice, PluginSettingTab, Setting } from "obsidian"
+import { PluginSettingTab, Setting } from "obsidian"
 import DocxerPlugin from "./main"
 
 export interface DocxerPluginSettings {
@@ -82,7 +82,7 @@ export class DocxerPluginSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Import docx comments")
-      .setDesc("Import comments from docx files using reference links. Comments will be placed at the end of the markdown file.")
+      .setDesc("Import comments from docx files using reference links. Comments will be placed at the end of the Markdown file.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.settingsManager.getSetting('importComments'))
@@ -112,7 +112,7 @@ export class DocxerPluginSettingTab extends PluginSettingTab {
      */
 
     // Main toggle for ignoring attachments entirely (master switch)
-    const ignoreAttachmentsSetting = new Setting(containerEl)
+    new Setting(containerEl)
       .setName("Ignore attachments")
       .setDesc("Completely ignore images from the source file. Only the image filename or description will be shown as plain text.")
       .addToggle((toggle) => {
@@ -144,7 +144,7 @@ export class DocxerPluginSettingTab extends PluginSettingTab {
     // Disabled when ignoreAttachments is ON to prevent invalid state
     const embedSetting = new Setting(containerEl)
       .setName("Embed image data in document")
-      .setDesc("Instead of extracting images to files, embed them as base64 data directly in the markdown. Creates self-contained documents but with larger file sizes.")
+      .setDesc("Instead of extracting images to files, embed them as base64 data directly in the Markdown. Creates self-contained documents but with larger file sizes.")
       .addToggle((toggle) => {
         toggle
           .setValue(embedImageData)
@@ -197,7 +197,7 @@ export class DocxerPluginSettingTab extends PluginSettingTab {
           })
           .setValue(this.settingsManager.getSetting('attachmentsFolder'))
           .setDisabled(ignoreAttachments || embedImageData)
-          .onChange(async (value) => await this.settingsManager.setSetting({ attachmentsFolder: value as any }))
+          .onChange(async (value) => await this.settingsManager.setSetting({ attachmentsFolder: value as unknown }))
         return dropdown
       })
 

@@ -1,4 +1,4 @@
-import { EditableFileView, Notice, TFile, TextFileView, WorkspaceLeaf } from "obsidian"
+import { EditableFileView, Notice, TFile, WorkspaceLeaf } from "obsidian"
 import DocxerPlugin from "src/main"
 import FileUtils from "src/utils/file-utils"
 import { FileSizeGate, PreviewTier } from "./file-size-gate"
@@ -31,7 +31,7 @@ export default abstract class ConvertibleFileView extends EditableFileView {
     this.header.id = "docxer-header"
 
     const text = document.createElement("span")
-    text.innerText = "This is a preview. To edit, convert it to markdown."
+    text.innerText = "This is a preview. To edit, convert it to Markdown."
     this.header.appendChild(text)
 
     const convertButton = document.createElement("button")
@@ -119,7 +119,7 @@ export default abstract class ConvertibleFileView extends EditableFileView {
 
     const note = document.createElement("p")
     note.className = "fv-metadata-note"
-    note.textContent = "File too large for preview (>200MB). Convert to Markdown to view content."
+    note.textContent = "File too large for preview (>200mb). Convert to Markdown to view content."
     wrapper.appendChild(note)
 
     return wrapper
@@ -129,7 +129,7 @@ export default abstract class ConvertibleFileView extends EditableFileView {
   private async convertFile() {
     if (!this.file) return
 
-    const convertedFilePath = FileUtils.toUnixPath(this.file.path).replace(/\.[^\.]*$/, ".md")
+    const convertedFilePath = FileUtils.toUnixPath(this.file.path).replace(/\.[^.]*$/, ".md")
     if (this.app.vault.getAbstractFileByPath(convertedFilePath)) {
       new Notice("A file with the same name already exists.")
       return
@@ -146,16 +146,16 @@ export default abstract class ConvertibleFileView extends EditableFileView {
     // Convert the file to markdown
     const markdown = await this.getMarkdownContent(attachmentsDirectory)
     if (!markdown) {
-      new Notice("Error converting file to markdown.")
+      new Notice("Error converting file to Markdown.")
       return
     }
 
     // Create the converted markdown file
     const convertedFile = await this.app.vault.create(convertedFilePath, markdown)
-    this.leaf.openFile(convertedFile)
+    void this.leaf.openFile(convertedFile)
 
     // Delete the original file if the setting is enabled
     if (this.plugin.settings.getSetting("deleteFileAfterConversion"))
-      this.app.vault.delete(this.file)
+      void this.app.vault.delete(this.file)
   }
 }

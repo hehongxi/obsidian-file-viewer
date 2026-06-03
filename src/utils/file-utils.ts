@@ -13,17 +13,17 @@ export default class FileUtils {
   }
 
   static dirname(path: string): string {
-    return FileUtils.toUnixPath(path).replace(/[^\/]*\/?$/, "")
+    return FileUtils.toUnixPath(path).replace(/[^/]*\/?$/, "")
   }
 
   static filename(path: string, withExtension: boolean): string {
     const unixPath = FileUtils.toUnixPath(path)
-    return withExtension ? unixPath.replace(/.*\//, "") : unixPath.replace(/.*\//, "").replace(/\.[^\.]*$/, "")
+    return withExtension ? unixPath.replace(/.*\//, "") : unixPath.replace(/.*\//, "").replace(/\.[^.]*$/, "")
   }
 
   static toValidFilename(filename: string): string {
     // " * / : < > ? \ | + , . ; = [ ] ! @
-    return filename.replace(/[\/\\:*?"<>|+,.=;!@[\]\n]/g, "")
+    return filename.replace(/[\\/:*?"<>|+,.=;!@[\]\n]/g, "")
   }
 
   static async createMissingFolders(app: App, filepath: string) {

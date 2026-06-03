@@ -50,7 +50,6 @@ function parseZipEntries(buffer: ArrayBuffer): ZipEntry[] {
   if (eocdOffset < 0) return entries // Not a valid ZIP
 
   // Read EOCD fields
-  const centralDirSize = view.getUint32(eocdOffset + 12, true)
   const centralDirOffset = view.getUint32(eocdOffset + 16, true)
   const totalEntries = view.getUint16(eocdOffset + 10, true)
 
@@ -60,7 +59,6 @@ function parseZipEntries(buffer: ArrayBuffer): ZipEntry[] {
     if (offset + 46 > bytes.length) break
     if (view.getUint32(offset, true) !== 0x02014b50) break // Central dir signature
 
-    const compressionMethod = view.getUint16(offset + 10, true)
     const compressedSize = view.getUint32(offset + 20, true)
     const uncompressedSize = view.getUint32(offset + 24, true)
     const nameLength = view.getUint16(offset + 28, true)
@@ -184,7 +182,7 @@ export default class ZipFileView extends ConvertibleFileView {
 
     // File tree
     if (entries.length === 0) {
-      wrapper.createEl("p", { text: "(empty or invalid ZIP)" })
+      wrapper.createEl("p", { text: "(Empty or invalid zip)" })
     } else {
       const tree = buildTree(entries)
       const treeDiv = wrapper.createEl("div", { cls: "fv-zip-tree" })

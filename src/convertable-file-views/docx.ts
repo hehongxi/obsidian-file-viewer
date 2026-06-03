@@ -36,10 +36,10 @@ export default class DocxFileView extends ConvertibleFileView {
       renderComments: plugin.settings.getSetting("importComments"),
     })
 
-    const docxWrapper = view.querySelector(".docx-wrapper") as HTMLElement | null
+    const docxWrapper = view.querySelector(".docx-wrapper")
     if (!docxWrapper) return { element: view, observer: null }
 
-    const docx = docxWrapper.querySelector(".docx") as HTMLElement | null
+    const docx = docxWrapper.querySelector(".docx")
     if (!docx) return { element: view, observer: null }
 
     const observer = new ResizeObserver(() => {
@@ -82,7 +82,7 @@ export default class DocxFileView extends ConvertibleFileView {
     const embedImageData = this.plugin.settings.getSetting("embedImageData")
     const ignoreAttachments = this.plugin.settings.getSetting("ignoreAttachments")
     
-    const conversionOptions: any = {
+    const conversionOptions: unknown = {
       styleMap: this.plugin.settings.getSetting("importComments") ? ["comment-reference => sup"] : undefined,
     }
     
@@ -107,7 +107,7 @@ export default class DocxFileView extends ConvertibleFileView {
      */
     if (ignoreAttachments) {
       // IGNORE state: Completely skip images
-      conversionOptions.convertImage = mammoth.images.imgElement(async (image: any) => {
+      conversionOptions.convertImage = mammoth.images.imgElement(async (image: unknown) => {
         const altText = image.altText || "image"
         console.debug(`Ignoring image: ${altText}`)
         // Return just the alt text as a placeholder - no image element
@@ -118,7 +118,7 @@ export default class DocxFileView extends ConvertibleFileView {
       conversionOptions.convertImage = mammoth.images.dataUri
     } else {
       // DEFAULT state: Extract to files
-      conversionOptions.convertImage = mammoth.images.imgElement(async (image: any) => {
+      conversionOptions.convertImage = mammoth.images.imgElement(async (image: unknown) => {
         console.debug(`Extracting image ${image.altText ?? ""}`)
         const imageBinary = await image.read()
 
@@ -152,7 +152,7 @@ export default class DocxFileView extends ConvertibleFileView {
           // [[MS2]](#comment-1) -> 2
           const commentNumber = content.match(/(\d+)/)?.[1] ?? "1"
           // [[MS2]](#comment-1) -> comment-1
-          const commentId = content.match(/#([^\)]+)/)?.[1] ?? "comment-0"
+          const commentId = content.match(/#([^)]+)/)?.[1] ?? "comment-0"
 
           return ` ([[#^${commentId}|Comment ${author} ${commentNumber}]])`
         }
@@ -178,7 +178,6 @@ export default class DocxFileView extends ConvertibleFileView {
       turndownService.addRule('comments-description-list', {
         filter: ['dl'],
         replacement: function (content) {
-          console.log(content)
           /*
           Comment [MS1]
 

@@ -18,7 +18,7 @@ interface NotebookCell {
   source: string[]
   outputs?: NotebookOutput[]
   execution_count?: number | null
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 interface NotebookOutput {
@@ -50,11 +50,6 @@ function parseNotebook(text: string): NotebookData | null {
 function joinSource(source: string[]): string {
   if (Array.isArray(source)) return source.join("")
   return String(source)
-}
-
-function getSourceLines(source: string[]): string[] {
-  const joined = joinSource(source)
-  return joined.split("\n")
 }
 
 /**
@@ -120,7 +115,7 @@ function renderOutput(output: NotebookOutput, container: HTMLElement) {
       }
       break
 
-    case "error":
+    case "error": {
       const errDiv = container.createEl("div", { cls: "fv-ipynb-error" })
       if (output.traceback) {
         // traceback items may contain ANSI escape codes — strip them
@@ -131,6 +126,8 @@ function renderOutput(output: NotebookOutput, container: HTMLElement) {
         errDiv.createEl("pre", { text: `${output.ename}: ${output.evalue}` })
       }
       break
+    }
+
   }
 }
 
@@ -141,6 +138,7 @@ function asString(val: string | string[]): string {
 
 /** Strip ANSI escape codes from text */
 function stripAnsi(text: string): string {
+  // eslint-disable-next-line no-control-regex
   return text.replace(/\x1b\[[0-9;]*m/g, "")
 }
 
@@ -192,7 +190,7 @@ export default class JupyterFileView extends ConvertibleFileView {
     const notebook = parseNotebook(text)
     if (!notebook) {
       const wrapper = document.createElement("div")
-      wrapper.createEl("p", { text: "(invalid notebook JSON)" })
+      wrapper.createEl("p", { text: "(Invalid notebook JSON)" })
       return wrapper
     }
 
@@ -257,7 +255,7 @@ export default class JupyterFileView extends ConvertibleFileView {
             lines.push("")
             break
 
-          case "code":
+          case "code": {
             const lang = notebook.metadata?.language_info?.name ?? ""
             lines.push("```" + lang)
             lines.push(source)
@@ -290,6 +288,7 @@ export default class JupyterFileView extends ConvertibleFileView {
               }
             }
             break
+          }
 
           case "raw":
             lines.push("```")
