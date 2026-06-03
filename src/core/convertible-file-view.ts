@@ -40,6 +40,24 @@ export default abstract class ConvertibleFileView extends EditableFileView {
     convertButton.onclick = () => this.convertFile()
     this.header.appendChild(convertButton)
 
+    const revealButton = document.createElement("button")
+    revealButton.id = "fv-reveal-button"
+    revealButton.innerText = "Reveal in folder"
+    revealButton.onclick = () => {
+      if (!this.file) return
+      const adapter = this.app.vault.adapter
+      const basePath = adapter.getBasePath?.() ?? ""
+      const fullPath = basePath + "/" + this.file.path
+      try {
+        // Electron's native reveal in file explorer
+        require("electron").shell.showItemInFolder(fullPath)
+      } catch (e) {
+        // Fallback: reveal in Obsidian's file explorer sidebar
+        this.app.commands.executeCommandById("file-explorer:reveal-active")
+      }
+    }
+    this.header.appendChild(revealButton)
+
     this.containerEl.insertAfter(this.header, this.containerEl.firstChild)
   }
 
