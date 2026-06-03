@@ -1,7 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
 import { builtinModules } from 'node:module';
-import { readFileSync } from 'node:fs';
 import { sassPlugin } from 'esbuild-sass-plugin';
 import { copy } from "esbuild-plugin-copy";
 
@@ -13,26 +12,6 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
-
-// Virtual module plugin: inlines epub.min.js as a string constant
-// Used by epub.ts to build the iframe srcdoc with epubjs embedded
-const epubJsVirtualPlugin = {
-  name: 'epubjs-virtual',
-  setup(build) {
-    build.onResolve({ filter: /^virtual:epubjs-source$/ }, args => ({
-      path: 'virtual:epubjs-source',
-      namespace: 'epubjs-virtual',
-    }));
-    build.onLoad({ filter: /.*/, namespace: 'epubjs-virtual' }, () => {
-      const epubJsPath = new URL('node_modules/epubjs/dist/epub.min.js', import.meta.url).pathname;
-      const source = readFileSync(epubJsPath, 'utf-8');
-      return {
-        contents: `const epubJsSource = ${JSON.stringify(source)};\nexport default epubJsSource;`,
-        loader: 'js',
-      };
-    });
-  },
-};
 
 const context = await esbuild.context({
   banner: {
@@ -54,7 +33,8 @@ const context = await esbuild.context({
     "@lezer/common",
     "@lezer/highlight",
     "@lezer/lr",
-    "epubjs",
+    "yauzl",         // word-extractor .docx path — never called, we only use .doc OLE path
+    "saxes",         // word-extractor .docx path — never called
     ...builtinModules
   ],
   format: "cjs",
@@ -64,7 +44,6 @@ const context = await esbuild.context({
   treeShaking: true,
   outdir: "dist",
   plugins: [
-    epubJsVirtualPlugin,
     sassPlugin({}),
     copy({
       resolveFrom: "cwd",

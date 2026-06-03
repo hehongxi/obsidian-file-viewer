@@ -1,8 +1,6 @@
-import AudioFileView from "./convertable-file-views/audio"
 import CsvFileView from "./convertable-file-views/csv"
+import DocFileView from "./convertable-file-views/doc"
 import DocxFileView from "./convertable-file-views/docx"
-import EpubFileView from "./convertable-file-views/epub"
-import JupyterFileView from "./convertable-file-views/jupyter"
 import PdfFileView from "./convertable-file-views/pdf"
 import PptxFileView from "./convertable-file-views/pptx"
 import TextFileView, { TEXT_EXTENSIONS } from "./convertable-file-views/text"
@@ -19,24 +17,20 @@ interface EmbedRegistry {
   registerExtension(ext: string, factory: (info: unknown, file: TFile, subpath: string) => unknown): void
 }
 
-// Based on obsidian-docxer's FILETYPE_MAP pattern
+// Format registry: maps file extension → View class
+// Full conversion (Preview + Convert to Markdown): docx, doc, pdf, csv, text
+// Preview only: xlsx, pptx, zip
 const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView } = {
   "docx": DocxFileView,
+  "doc": DocFileView,
   "csv": CsvFileView,
-  "mp3": AudioFileView,
-  "wav": AudioFileView,
-  "ogg": AudioFileView,
-  "flac": AudioFileView,
-  "m4a": AudioFileView,
-  "aac": AudioFileView,
-  "wma": AudioFileView,
   "zip": ZipFileView,
-  "ipynb": JupyterFileView,
-  // Excel / Spreadsheets
+  // Excel — preview only
   "xlsx": XlsxFileView,
   "xls": XlsxFileView,
+  // PDF — preview + convert
   "pdf": PdfFileView,
-  "epub": EpubFileView,
+  // PowerPoint — preview only
   "pptx": PptxFileView,
 }
 
@@ -44,9 +38,12 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
 const SKIP_EXTENSIONS = new Set([
   "md", "csv", "docx", "html", "htm",
   // Image formats — native in Obsidian (Chromium-based)
-  "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico", "avif",
-  "mp3", "wav", "ogg", "flac", "m4a", "aac", "wma",
-  "mp4", "webm", "ogv", "avi", "mov",
+  "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico", "avif", "tiff", "tif",
+  // Audio — native in Obsidian
+  "mp3", "wav", "ogg", "flac", "m4a", "aac", "wma", "opus",
+  // Video — native in Obsidian
+  "mp4", "webm", "ogv", "avi", "mov", "mkv",
+  // Spreadsheets — handled by XlsxFileView
   "xlsx", "xls",
 ])
 

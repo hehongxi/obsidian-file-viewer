@@ -22,19 +22,14 @@ File Viewer extends the obsidian-docxer architecture to support previewing and c
 
 | Format | Extension | Preview | Convert to MD | Status |
 |--------|-----------|---------|---------------|--------|
-| Word | .docx | ✅ docx-preview | ✅ mammoth + turndown | ✅ Done |
-| CSV | .csv | ✅ HTML table | ✅ Markdown table | ✅ Done |
-| Text/Code | .txt, .json, .xml, .yaml, .py, .js, .ts, .go, .rs, etc. (40+) | ✅ styled code block | ✅ fenced code block | ✅ Done |
-| HTML | .html, .htm | Obsidian 原生（内置浏览器） | — | 原生支持 |
-| Audio | .mp3, .wav, .ogg, .flac, .m4a, .aac, .wma | ✅ HTML5 player | ✅ embed link | ✅ Done |
-| ZIP | .zip | ✅ file tree (pure JS) | ✅ table listing | ✅ Done |
-| Jupyter | .ipynb | ✅ cell renderer | ✅ code + outputs | ✅ Done |
-| Excel | .xlsx/.xls | ✅ SheetJS HTML table | ✅ SheetJS → MD table | ✅ Done |
+| Word (.docx) | .docx | ✅ docx-preview | ✅ mammoth + turndown | ✅ Done |
+| Word (.doc) | .doc | ✅ text extraction | ✅ word-extractor | ✅ Done |
 | PDF | .pdf | ✅ pdf.js canvas | ✅ pdf.js text layer | ✅ Done |
-| EPUB | .epub | ✅ epub.js iframe reader | ✅ epub.js spine → MD | ✅ Done |
-| PowerPoint | .pptx | ✅ pptx-browser canvas | ✅ pptx-browser text extraction | ✅ Done |
-| .doc (旧 Word) | .doc | 无纯 JS 解析器 | — | 需转换为 .docx |
-| .ppt (旧 PPT) | .ppt | 无纯 JS 解析器 | — | 需转换为 .pptx |
+| CSV | .csv | ✅ HTML table | ✅ Papa Parse → MD table | ✅ Done |
+| Text/Code | .txt, .json, .xml, .yaml, etc. (40+) | ✅ styled code block | ✅ fenced code block | ✅ Done |
+| Excel | .xlsx/.xls | ✅ SheetJS HTML table | — (preview only) | ✅ Done |
+| PowerPoint | .pptx | ✅ pptx-browser canvas | — (preview only) | ✅ Done |
+| ZIP | .zip | ✅ file tree | — (preview only) | ✅ Done |
 
 **Note:** Image formats (.jpg, .png, .gif, .webp, .svg) are intentionally not handled — Obsidian natively supports them via its Chromium-based viewer.
 
