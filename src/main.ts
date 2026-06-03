@@ -1,7 +1,6 @@
 import CsvFileView from "./convertable-file-views/csv"
 import DocFileView from "./convertable-file-views/doc"
 import DocxFileView from "./convertable-file-views/docx"
-import PdfFileView from "./convertable-file-views/pdf"
 import PptxFileView from "./convertable-file-views/pptx"
 import TextFileView, { TEXT_EXTENSIONS } from "./convertable-file-views/text"
 import XlsxFileView from "./convertable-file-views/xlsx"
@@ -18,7 +17,7 @@ interface EmbedRegistry {
 }
 
 // Format registry: maps file extension → View class
-// Full conversion (Preview + Convert to Markdown): docx, doc, pdf, csv, text
+// Full conversion (Preview + Convert to Markdown): docx, doc, csv, text
 // Preview only: xlsx, pptx, zip
 const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView } = {
   "docx": DocxFileView,
@@ -29,7 +28,6 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
   "xlsx": XlsxFileView,
   "xls": XlsxFileView,
   // PDF — preview + convert
-  "pdf": PdfFileView,
   // PowerPoint — preview only
   "pptx": PptxFileView,
 }
@@ -45,6 +43,7 @@ const SKIP_EXTENSIONS = new Set([
   "mp4", "webm", "ogv", "avi", "mov", "mkv",
   // Spreadsheets — handled by XlsxFileView
   "xlsx", "xls",
+  "pdf",
 ])
 
 // Register text file extensions dynamically

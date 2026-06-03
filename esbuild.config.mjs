@@ -50,7 +50,6 @@ const context = await esbuild.context({
       watch: !prod,
       assets: [
         { from: "manifest.json", to: "dist/manifest.json" },
-        { from: "node_modules/pdfjs-dist/legacy/build/pdf.min.js", to: "dist/pdf.worker.js" },
       ],
     }),
   ],
