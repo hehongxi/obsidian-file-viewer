@@ -2,7 +2,6 @@ import AudioFileView from "./convertable-file-views/audio"
 import CsvFileView from "./convertable-file-views/csv"
 import DocxFileView from "./convertable-file-views/docx"
 import EpubFileView from "./convertable-file-views/epub"
-import HtmlFileView from "./convertable-file-views/html"
 import JupyterFileView from "./convertable-file-views/jupyter"
 import PdfFileView from "./convertable-file-views/pdf"
 import PptxFileView from "./convertable-file-views/pptx"
@@ -24,8 +23,6 @@ interface EmbedRegistry {
 const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView } = {
   "docx": DocxFileView,
   "csv": CsvFileView,
-  "html": HtmlFileView,
-  "htm": HtmlFileView,
   "mp3": AudioFileView,
   "wav": AudioFileView,
   "ogg": AudioFileView,
