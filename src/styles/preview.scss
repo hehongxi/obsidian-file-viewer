@@ -529,19 +529,19 @@
   }
 
   .fv-xlsx-table {
-    width: 100%;
     border-collapse: collapse;
     font-size: 0.9em;
     font-family: var(--font-monospace);
+    table-layout: auto;
 
     th, td {
       padding: 4px 10px;
       border: 1px solid var(--background-modifier-border);
       text-align: left;
-      white-space: nowrap;
       max-width: 300px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-break: break-word;
+      white-space: normal;
+      vertical-align: top;
     }
 
     th {
