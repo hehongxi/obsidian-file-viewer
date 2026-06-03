@@ -34,7 +34,7 @@ const FILETYPE_MAP: { [key: string]: new(leaf: WorkspaceLeaf, plugin: FileViewer
 
 // Extensions already handled by Obsidian or other format views
 const SKIP_EXTENSIONS = new Set([
-  "md", "csv", "docx", "html", "htm",
+  "md", "txt", "text", "csv", "docx", "html", "htm",
   // Image formats — native in Obsidian (Chromium-based)
   "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico", "avif", "tiff", "tif",
   // Audio — native in Obsidian
