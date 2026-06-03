@@ -28,9 +28,8 @@ function formatSize(bytes: number): string {
  * Convert SheetJS workbook → x-data-spreadsheet data format.
  * From SheetJS official demo: https://docs.sheetjs.com/docs/demos/grid/xs
  */
-function stox(workbook: { SheetNames: string[]; Sheets: Record<string, unknown> }): unknown[] {
+function stox(workbook: { SheetNames: string[]; Sheets: Record<string, unknown> }, XLSX: { utils: { sheet_to_json: (ws: unknown, opts: unknown) => string[][] } }): unknown[] {
   const out: unknown[] = []
-  const XLSX = require("xlsx")
   workbook.SheetNames.forEach((name: string) => {
     const o: { name: string; rows: Record<number, { cells: Record<number, { text: string }> }> } = { name, rows: {} }
     const ws = workbook.Sheets[name]
@@ -103,7 +102,7 @@ export default class XlsxFileView extends ConvertibleFileView {
     }
 
     // Convert SheetJS workbook → x-data-spreadsheet format
-    const xsData = stox(workbook as unknown as { SheetNames: string[]; Sheets: Record<string, unknown> })
+    const xsData = stox(workbook as unknown as { SheetNames: string[]; Sheets: Record<string, unknown> }, XLSX)
 
     // Dynamic import: x-data-spreadsheet (~197KB) loaded on demand
     // Import from dist (pre-built) to avoid .less file issues
@@ -113,21 +112,26 @@ export default class XlsxFileView extends ConvertibleFileView {
     const container = wrapper.createEl("div", { cls: "fv-xlsx-canvas-container" })
 
     try {
-      // Initialize x-data-spreadsheet (Canvas renderer)
-      const grid = xSpreadsheet(container, {
-        mode: "read",       // read-only
-        showToolbar: false,  // no toolbar in preview
-        showContextmenu: false,
-        view: {
-          height: () => 600,
-          width: () => container.clientWidth || 800,
-        },
-        row: { len: PREVIEW_MAX_ROWS, height: 25 },
-        col: { len: 52, width: 100, indexWidth: 60, minWidth: 60 },
+      // Defer initialization until after container is in the DOM
+      // (clientWidth/clientHeight are 0 before attachment)
+      requestAnimationFrame(() => {
+        try {
+          const grid = xSpreadsheet(container, {
+            mode: "read",       // read-only
+            showToolbar: false,  // no toolbar in preview
+            showContextmenu: false,
+            view: {
+              height: () => container.clientHeight || 600,
+              width: () => container.clientWidth || 800,
+            },
+            row: { len: PREVIEW_MAX_ROWS, height: 25 },
+            col: { len: 52, width: 100, indexWidth: 60, minWidth: 60 },
+          })
+          grid.loadData(xsData)
+        } catch (e) {
+          console.error("x-data-spreadsheet init failed", e)
+        }
       })
-
-      // Load data
-      grid.loadData(xsData)
 
       // If multiple sheets, show sheet tabs via x-data-spreadsheet's built-in tabs
       // (it handles this automatically with loadData array)
