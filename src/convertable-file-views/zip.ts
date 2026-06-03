@@ -1,5 +1,5 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import { TFile } from "obsidian"
 
 /**
@@ -152,7 +152,7 @@ export default class ZipFileView extends ConvertibleFileView {
     return ZipFileView.VIEW_TYPE_ID
   }
 
-  static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
+  static async getFilePreview(plugin: FileViewerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
 
     let buffer: ArrayBuffer

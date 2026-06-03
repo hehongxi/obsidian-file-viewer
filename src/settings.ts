@@ -1,7 +1,7 @@
 import { PluginSettingTab, Setting } from "obsidian"
-import DocxerPlugin from "./main"
+import FileViewerPlugin from "./main"
 
-export interface DocxerPluginSettings {
+export interface FileViewerPluginSettings {
   deleteFileAfterConversion: boolean
   importComments: boolean
   embedImageData: boolean
@@ -12,7 +12,7 @@ export interface DocxerPluginSettings {
   useImageAltAsFilename: boolean
 }
 
-export const DEFAULT_SETTINGS: Partial<DocxerPluginSettings> = {
+export const DEFAULT_SETTINGS: Partial<FileViewerPluginSettings> = {
   deleteFileAfterConversion: false,
   importComments: false,
   embedImageData: false,
@@ -24,13 +24,13 @@ export const DEFAULT_SETTINGS: Partial<DocxerPluginSettings> = {
 }
 
 export default class SettingsManager {
-  static SETTINGS_CHANGED_EVENT = 'docxer:settings-changed'
+  static SETTINGS_CHANGED_EVENT = 'file-viewer:settings-changed'
 
-  private plugin: DocxerPlugin
-  private settings: DocxerPluginSettings
-  private settingsTab: DocxerPluginSettingTab
+  private plugin: FileViewerPlugin
+  private settings: FileViewerPluginSettings
+  private settingsTab: FileViewerPluginSettingTab
 
-  constructor(plugin: DocxerPlugin) {
+  constructor(plugin: FileViewerPlugin) {
     this.plugin = plugin
   }
 
@@ -43,26 +43,26 @@ export default class SettingsManager {
     await this.plugin.saveData(this.settings)
   }
 
-  getSetting<T extends keyof DocxerPluginSettings>(key: T): DocxerPluginSettings[T] {
+  getSetting<T extends keyof FileViewerPluginSettings>(key: T): FileViewerPluginSettings[T] {
     return this.settings[key]
   }
 
-  async setSetting(data: Partial<DocxerPluginSettings>) {
+  async setSetting(data: Partial<FileViewerPluginSettings>) {
     this.settings = Object.assign(this.settings, data)
     await this.saveSettings()
     this.plugin.app.workspace.trigger(SettingsManager.SETTINGS_CHANGED_EVENT)
   }
 
   addSettingsTab() {
-    this.settingsTab = new DocxerPluginSettingTab(this.plugin, this)
+    this.settingsTab = new FileViewerPluginSettingTab(this.plugin, this)
     this.plugin.addSettingTab(this.settingsTab)
   }
 }
 
-export class DocxerPluginSettingTab extends PluginSettingTab {
+export class FileViewerPluginSettingTab extends PluginSettingTab {
   settingsManager: SettingsManager
 
-  constructor(plugin: DocxerPlugin, settingsManager: SettingsManager) {
+  constructor(plugin: FileViewerPlugin, settingsManager: SettingsManager) {
     super(plugin.app, plugin)
     this.settingsManager = settingsManager
   }
@@ -132,7 +132,7 @@ export class DocxerPluginSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setHeading()
-      .setClass('docxer-settings-heading')
+      .setClass('fv-settings-heading')
       .setName("Attachments")
       .setDesc("Settings related to attachments extracted during file conversion.")
 

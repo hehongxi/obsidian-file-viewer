@@ -1,5 +1,5 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import { TFile } from "obsidian"
 import DOMPurify from "dompurify"
 
@@ -100,6 +100,8 @@ function renderOutput(output: NotebookOutput, container: HTMLElement) {
         }
         if (output.data["text/html"]) {
           const wrapper = container.createEl("div", { cls: "fv-ipynb-html" })
+          // innerHTML required here: Jupyter outputs are rich HTML (tables, plots, styled text).
+          // DOMPurify.sanitize() strips all <script>, event handlers, and unsafe URLs.
           wrapper.innerHTML = DOMPurify.sanitize(asString(output.data["text/html"]))
         }
         if (output.data["image/png"]) {
@@ -176,7 +178,7 @@ export default class JupyterFileView extends ConvertibleFileView {
     return JupyterFileView.VIEW_TYPE_ID
   }
 
-  static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
+  static async getFilePreview(plugin: FileViewerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
     let text: string
     try {

@@ -3,7 +3,7 @@ import FileUtils from "src/utils/file-utils"
 import ObsidianTurndown from "src/utils/obsidian-turndown"
 import { htmlToMarkdown, TFile } from "obsidian"
 import MimeUtils from "src/utils/mime-utils"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 
 export default class DocxFileView extends ConvertibleFileView {
   static readonly VIEW_TYPE_ID = "docx-view"
@@ -13,11 +13,11 @@ export default class DocxFileView extends ConvertibleFileView {
     return DocxFileView.VIEW_TYPE_ID
   }
 
-  static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
+  static async getFilePreview(plugin: FileViewerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     return (await DocxFileView.createFilePreview(plugin, file)).element
   }
 
-  static async createFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<{ element: HTMLElement | null, observer: ResizeObserver | null }> {
+  static async createFilePreview(plugin: FileViewerPlugin, file: TFile | null): Promise<{ element: HTMLElement | null, observer: ResizeObserver | null }> {
     if (!file) return { element: null, observer: null }
 
     const view = document.createElement("div")

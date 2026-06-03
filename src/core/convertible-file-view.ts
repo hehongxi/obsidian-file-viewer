@@ -1,17 +1,17 @@
 import { EditableFileView, Notice, TFile, WorkspaceLeaf } from "obsidian"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import FileUtils from "src/utils/file-utils"
 import { FileSizeGate, PreviewTier } from "./file-size-gate"
 
 export default abstract class ConvertibleFileView extends EditableFileView {
-  plugin: DocxerPlugin
+  plugin: FileViewerPlugin
   fileContent: string
   header: HTMLElement | null = null
   content: HTMLElement | null = null
   /** Current preview tier for the loaded file — set in onLoadFile before getFilePreview(). */
   previewTier: PreviewTier = "full"
 
-	constructor(leaf: WorkspaceLeaf, plugin: DocxerPlugin) {
+	constructor(leaf: WorkspaceLeaf, plugin: FileViewerPlugin) {
 		super(leaf)
     this.plugin = plugin
 	}
@@ -28,14 +28,14 @@ export default abstract class ConvertibleFileView extends EditableFileView {
 		await super.onOpen()
 
     this.header = document.createElement("div")
-    this.header.id = "docxer-header"
+    this.header.id = "fv-header"
 
     const text = document.createElement("span")
     text.innerText = "This is a preview. To edit, convert it to Markdown."
     this.header.appendChild(text)
 
     const convertButton = document.createElement("button")
-    convertButton.id = "docxer-convert-button"
+    convertButton.id = "fv-convert-button"
     convertButton.innerText = "Convert"
     convertButton.onclick = () => this.convertFile()
     this.header.appendChild(convertButton)

@@ -1,16 +1,16 @@
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import ConvertibleFileView from "./convertible-file-view"
 import { Component, TFile, WorkspaceLeaf } from "obsidian"
 
-export default class DocxerEmbedComponent extends Component {
-  plugin: DocxerPlugin
-  view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView
+export default class FileViewerEmbedComponent extends Component {
+  plugin: FileViewerPlugin
+  view: new (leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView
 
   info: unknown
   file: TFile
   subpath: string
 
-  constructor(plugin: DocxerPlugin, view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView, info: unknown, file: TFile, subpath: string) {
+  constructor(plugin: FileViewerPlugin, view: new (leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView, info: unknown, file: TFile, subpath: string) {
     super()
 
     this.plugin = plugin
@@ -20,7 +20,7 @@ export default class DocxerEmbedComponent extends Component {
     this.file = file
     this.subpath = subpath
 
-    info.containerEl.addClass("docxer-embed")
+    info.containerEl.addClass("fv-embed")
   }
 
   // override
@@ -31,7 +31,7 @@ export default class DocxerEmbedComponent extends Component {
     this.info.containerEl.appendChild(preview)
   }
 
-  static isEmbeddable(view: new (leaf: WorkspaceLeaf, plugin: DocxerPlugin) => ConvertibleFileView) {
+  static isEmbeddable(view: new (leaf: WorkspaceLeaf, plugin: FileViewerPlugin) => ConvertibleFileView) {
     return (view as unknown).getFilePreview !== undefined
   }
 }

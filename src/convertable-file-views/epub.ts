@@ -1,5 +1,5 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import { Notice, TFile } from "obsidian"
 
 /**
@@ -116,9 +116,9 @@ ${epubJsSource}
 
 // ── Base64 → ArrayBuffer ──
 function base64ToArrayBuffer(base64) {
-  var binary = atob(base64);
-  var bytes = new Uint8Array(binary.length);
-  for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes.buffer;
 }
 
@@ -224,7 +224,7 @@ export default class EpubFileView extends ConvertibleFileView {
   /**
    * Static helper: get preview element for embed support.
    */
-  static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
+  static async getFilePreview(plugin: FileViewerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
 
     const wrapper = document.createElement("div")

@@ -10,7 +10,7 @@ import TextFileView, { TEXT_EXTENSIONS } from "./convertable-file-views/text"
 import XlsxFileView from "./convertable-file-views/xlsx"
 import ZipFileView from "./convertable-file-views/zip"
 import ConvertibleFileView from "./core/convertible-file-view"
-import FileViewerEmbedComponent from "./core/docxer-embed-component"
+import FileViewerEmbedComponent from "./core/file-viewer-embed-component"
 import SettingsManager from "./settings"
 import { Plugin, TFile, WorkspaceLeaf } from "obsidian"
 

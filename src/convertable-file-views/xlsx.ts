@@ -1,5 +1,5 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import { TFile } from "obsidian"
 
 /**
@@ -105,7 +105,7 @@ export default class XlsxFileView extends ConvertibleFileView {
   }
 
   static async getFilePreview(
-    plugin: DocxerPlugin,
+    plugin: FileViewerPlugin,
     file: TFile | null
   ): Promise<HTMLElement | null> {
     if (!file) return null

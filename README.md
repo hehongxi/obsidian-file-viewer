@@ -29,12 +29,12 @@ File Viewer extends the obsidian-docxer architecture to support previewing and c
 | Audio | .mp3, .wav, .ogg, .flac, .m4a, .aac, .wma | ✅ HTML5 player | ✅ embed link | ✅ Done |
 | ZIP | .zip | ✅ file tree (pure JS) | ✅ table listing | ✅ Done |
 | Jupyter | .ipynb | ✅ cell renderer | ✅ code + outputs | ✅ Done |
-| Excel | .xlsx | 🔲 SheetJS | 🔲 SheetJS → table | Phase 2 |
-| PDF | .pdf | 🔲 pdf.js | 🔲 pdf.js | Phase 2 |
-| EPUB | .epub | 🔲 epub.js | 🔲 ebooklib | Phase 2 |
-| PowerPoint | .pptx | 🔲 TBD | 🔲 markitdown | Phase 3 |
+| Excel | .xlsx/.xls | ✅ SheetJS HTML table | ✅ SheetJS → MD table | ✅ Done |
+| PDF | .pdf | ✅ pdf.js canvas | ✅ pdf.js text layer | ✅ Done |
+| EPUB | .epub | ✅ epub.js iframe reader | ✅ epub.js spine → MD | ✅ Done |
+| PowerPoint | .pptx | ✅ pptx-browser canvas | ✅ pptx-browser text extraction | ✅ Done |
 
-**Note:** Image formats (.jpg, .png, .gif, .webp, .svg) are intentionally not handled — Obsidian's built-in image viewer is superior, and overriding it would degrade the user experience.
+**Note:** Image formats (.jpg, .png, .gif, .webp, .svg) are intentionally not handled — Obsidian natively supports them via its Chromium-based viewer.
 
 ## Installation
 

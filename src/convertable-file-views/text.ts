@@ -1,5 +1,5 @@
 import ConvertibleFileView from "src/core/convertible-file-view"
-import DocxerPlugin from "src/main"
+import FileViewerPlugin from "src/main"
 import { TFile } from "obsidian"
 
 /**
@@ -94,7 +94,7 @@ export default class TextFileView extends ConvertibleFileView {
     return EXT_TO_LANG[this.getExt()] ?? ""
   }
 
-  static async getFilePreview(plugin: DocxerPlugin, file: TFile | null): Promise<HTMLElement | null> {
+  static async getFilePreview(plugin: FileViewerPlugin, file: TFile | null): Promise<HTMLElement | null> {
     if (!file) return null
     let text: string
     try {

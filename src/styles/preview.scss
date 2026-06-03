@@ -1,4 +1,14 @@
-#docxer-header {
+// ── CSS Custom Properties ─────────────────────────────────────────────────────
+:root {
+  --fv-shadow: rgba(0, 0, 0, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fv-shadow: rgba(0, 0, 0, 0.3);
+  }
+}
+
+#fv-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -9,7 +19,7 @@
   background-color: var(--background-secondary);
 }
 
-.docxer-embed {
+.fv-embed {
   max-height: 800px;
   overflow: auto;
 
@@ -342,7 +352,7 @@
 .fv-pdf-canvas {
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--fv-shadow, rgba(0, 0, 0, 0.1));
 
   &.fv-pdf-canvas-adjacent {
     opacity: 0.45;
@@ -395,7 +405,7 @@
 .fv-pptx-canvas {
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--fv-shadow, rgba(0, 0, 0, 0.1));
   max-width: 100%;
 }
 
